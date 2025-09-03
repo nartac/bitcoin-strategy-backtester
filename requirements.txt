@@ -1,0 +1,12 @@
+# Core Data Processing
+pandas==2.1.4
+numpy==1.24.3
+requests==2.31.0
+
+# Visualization & Dashboard
+streamlit==1.29.0
+plotly==5.17.0
+
+# Development Tools
+pytest==7.4.3
+pytest-cov==4.1.0
