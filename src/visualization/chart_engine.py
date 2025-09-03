@@ -264,16 +264,26 @@ class OHLCVChart:
             ax.set_yscale('log')
     
     def _plot_line_chart(self, ax, scale: str) -> None:
-        """Plot line chart."""
-        ax.plot(self.data.index, self.data['close'], 
+        """Plot line chart with proper spacing."""
+        # Use sequential positioning to eliminate weekend gaps
+        x_positions = range(len(self.data))
+        ax.plot(x_positions, self.data['close'], 
                 color=COLORS['primary'], linewidth=2, label='Close')
+        
+        # Set custom x-axis labels with proper date formatting
+        self._set_sequential_x_axis(ax, x_positions)
     
     def _plot_area_chart(self, ax, scale: str) -> None:
-        """Plot area chart."""
-        ax.fill_between(self.data.index, self.data['close'], 
+        """Plot area chart with proper spacing."""
+        # Use sequential positioning to eliminate weekend gaps
+        x_positions = range(len(self.data))
+        ax.fill_between(x_positions, self.data['close'], 
                        color=COLORS['primary'], alpha=0.3, label='Close')
-        ax.plot(self.data.index, self.data['close'], 
+        ax.plot(x_positions, self.data['close'], 
                 color=COLORS['primary'], linewidth=2)
+        
+        # Set custom x-axis labels with proper date formatting
+        self._set_sequential_x_axis(ax, x_positions)
     
     def _plot_candlestick_chart(self, ax, scale: str) -> None:
         """Plot candlestick chart."""
@@ -291,19 +301,23 @@ class OHLCVChart:
         self._plot_manual_candlesticks(ax)
     
     def _plot_manual_candlesticks(self, ax) -> None:
-        """Manual candlestick implementation."""
+        """Manual candlestick implementation with proper spacing."""
+        # Use sequential positioning to eliminate weekend gaps
         for i, (idx, row) in enumerate(self.data.iterrows()):
             open_price = row['open']
             high_price = row['high']
             low_price = row['low'] 
             close_price = row['close']
             
+            # Use sequential position instead of date
+            x_pos = i
+            
             # Determine candle color
             is_bullish = close_price >= open_price
             color = COLORS['bull'] if is_bullish else COLORS['bear']
             
             # Draw wick (high-low line)
-            ax.plot([idx, idx], [low_price, high_price], 
+            ax.plot([x_pos, x_pos], [low_price, high_price], 
                    color=color, linewidth=1, alpha=0.8)
             
             # Draw body (open-close rectangle)
@@ -311,63 +325,105 @@ class OHLCVChart:
             body_bottom = min(open_price, close_price)
             
             if body_height > 0:
-                rect = Rectangle((mdates.date2num(idx) - 0.3, body_bottom),
+                rect = Rectangle((x_pos - 0.3, body_bottom),
                                0.6, body_height,
                                facecolor=color, edgecolor=color, alpha=0.8)
                 ax.add_patch(rect)
             else:
                 # Doji - draw horizontal line
-                ax.plot([idx - timedelta(hours=6), idx + timedelta(hours=6)], 
+                ax.plot([x_pos - 0.3, x_pos + 0.3], 
                        [close_price, close_price], color=color, linewidth=2)
+        
+        # Set custom x-axis labels with proper date formatting
+        x_positions = range(len(self.data))
+        self._set_sequential_x_axis(ax, x_positions)
     
     def _plot_ohlc_chart(self, ax, scale: str) -> None:
-        """Plot OHLC bar chart."""
+        """Plot OHLC bar chart with proper spacing."""
         for i, (idx, row) in enumerate(self.data.iterrows()):
             open_price = row['open']
             high_price = row['high']
             low_price = row['low']
             close_price = row['close']
             
+            # Use sequential position instead of date
+            x_pos = i
+            
             # Determine bar color
             is_bullish = close_price >= open_price
             color = COLORS['bull'] if is_bullish else COLORS['bear']
             
-            # Draw high-low line
-            ax.plot([idx, idx], [low_price, high_price], 
-                   color=color, linewidth=1.5)
+            # Draw vertical line (high-low)
+            ax.plot([x_pos, x_pos], [low_price, high_price], 
+                   color=color, linewidth=2)
             
             # Draw open tick (left)
-            ax.plot([idx - timedelta(hours=6), idx], [open_price, open_price], 
-                   color=color, linewidth=1.5)
+            ax.plot([x_pos - 0.3, x_pos], [open_price, open_price], 
+                   color=color, linewidth=2)
             
             # Draw close tick (right)
-            ax.plot([idx, idx + timedelta(hours=6)], [close_price, close_price], 
-                   color=color, linewidth=1.5)
+            ax.plot([x_pos, x_pos + 0.3], [close_price, close_price], 
+                   color=color, linewidth=2)
+        
+        # Set custom x-axis labels with proper date formatting
+        x_positions = range(len(self.data))
+        self._set_sequential_x_axis(ax, x_positions)
+    
+    def _set_sequential_x_axis(self, ax, x_positions) -> None:
+        """Set x-axis to use sequential positioning with proper date labels."""
+        # Set x-axis to show proper dates without gaps
+        ax.set_xlim(-0.5, len(self.data) - 0.5)
+        
+        # Calculate how many labels to show based on data length
+        max_labels = 8
+        step = max(1, len(self.data) // max_labels)
+        
+        # Select positions and corresponding dates for labels
+        label_positions = list(range(0, len(self.data), step))
+        if label_positions[-1] != len(self.data) - 1:
+            label_positions.append(len(self.data) - 1)
+        
+        label_dates = [self.data.index[i].strftime('%m/%d') for i in label_positions]
+        
+        # Set custom tick positions and labels
+        ax.set_xticks(label_positions)
+        ax.set_xticklabels(label_dates, rotation=45, ha='right')
+        
+        # Enable grid for better readability
+        ax.grid(True, alpha=0.3)
     
     def _add_indicators(self, ax, indicators: str) -> None:
         """Add technical indicators to the chart."""
         indicator_data = calculate_chart_indicators(self.data, indicators)
         
         ma_colors = self.styler.get_ma_colors()
+        # Calculate indicators with sequential x positions
+        x_positions = list(range(len(self.data)))
         
         if 'MA50' in indicator_data:
-            ax.plot(self.data.index, indicator_data['MA50'], 
+            ax.plot(x_positions, indicator_data['MA50'], 
                    color=ma_colors['ma50'], linewidth=2, label='MA50', alpha=0.8)
         
         if 'MA200' in indicator_data:
-            ax.plot(self.data.index, indicator_data['MA200'], 
+            ax.plot(x_positions, indicator_data['MA200'], 
                    color=ma_colors['ma200'], linewidth=2, label='MA200', alpha=0.8)
     
     def _plot_volume_subplot(self) -> None:
-        """Plot volume in separate subplot."""
+        """Plot volume in separate subplot with proper spacing."""
         ax = self.axes[1]
         volume_up, volume_down = prepare_volume_data(self.data)
         
+        # Use sequential positioning for volume bars
+        x_positions = list(range(len(self.data)))
+        
         # Plot volume bars
-        ax.bar(self.data.index, volume_up, color=COLORS['volume_up'], 
+        ax.bar(x_positions, volume_up, color=COLORS['volume_up'], 
                alpha=COLORS['volume_alpha'], label='Volume Up')
-        ax.bar(self.data.index, volume_down, color=COLORS['volume_down'], 
+        ax.bar(x_positions, volume_down, color=COLORS['volume_down'], 
                alpha=COLORS['volume_alpha'], label='Volume Down')
+        
+        # Apply same x-axis formatting
+        self._set_sequential_x_axis(ax, x_positions)
     
     def _plot_volume_overlay(self) -> None:
         """Plot volume as overlay on main chart."""

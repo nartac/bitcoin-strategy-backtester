@@ -506,6 +506,20 @@ docker-compose.prod.yml
 my_strategies/
 personal_strategies/
 
+# Temporary files and test outputs
+test_*.png
+*_temp.*
+temp_*
+test_cleanup.py
+test_spacing.py
+test_improved_spacing.py
+analyze_gaps.py
+check_tools_db.py
+compare_databases.py
+create_comparison.py
+verify_charts.py
+spacing_comparison.png
+
 # =============================================================================
 # End of .gitignore
 # =============================================================================
