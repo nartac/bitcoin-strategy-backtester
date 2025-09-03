@@ -178,6 +178,67 @@ class CustomRSIStrategy(BaseStrategy):
         return signals
 ```
 
+## 📊 Chart Explorer CLI
+
+The project includes an interactive Chart Explorer CLI that allows you to easily generate financial charts without navigating through the project structure. This tool is perfect for quick analysis and visualization.
+
+### Quick Chart Generation
+
+Generate charts directly from the command line:
+
+```bash
+# Simple chart with defaults (1Y timeframe, line style)
+python chart_explorer.py BTC-USD
+
+# Advanced candlestick chart with indicators and volume
+python chart_explorer.py TSLA --timeframe 6M --style candlestick --indicators MA50 --volume subplot
+
+# Multi-year chart with both moving averages
+python chart_explorer.py AAPL --timeframe 5Y --indicators BOTH --style area
+```
+
+### Interactive Mode
+
+Launch interactive mode for guided chart creation:
+
+```bash
+python chart_explorer.py
+```
+
+The interactive mode will guide you through:
+- Ticker symbol selection
+- Timeframe configuration (5D, 1M, 3M, 6M, YTD, 1Y, 5Y, MAX)
+- Chart style selection (line, area, candlestick, ohlc)
+- Technical indicators (MA50, MA200, BOTH)
+- Volume display options (subplot, overlay)
+- Custom output file naming
+
+### Features
+
+- 🎨 **Color-coded terminal output** for better user experience
+- 📚 **Recent chart history** tracking your analysis sessions
+- ⭐ **Favorites system** to save frequently used configurations
+- 🚀 **Progress indicators** showing data fetching and chart generation status
+- 📊 **Auto-generated filenames** with timestamps for organization
+- 🔍 **Smart validation** for parameters and ticker symbols
+
+### Available Options
+
+```bash
+python chart_explorer.py --help-detailed  # Show comprehensive help
+```
+
+**Timeframes:** 5D, 1M, 3M, 6M, YTD, 1Y, 5Y, MAX  
+**Chart Styles:** line, area, candlestick, ohlc  
+**Price Scales:** linear, log  
+**Indicators:** MA50, MA200, BOTH  
+**Volume Display:** subplot, overlay
+
+**Popular Tickers:** BTC-USD, ETH-USD, AAPL, TSLA, GOOGL, MSFT, AMZN, NVDA
+
+## 📚 Usage
+```
+
 ### 4. Example Output
 
 *[Placeholder for strategy performance chart showing portfolio value over time, drawdown periods, and key metrics]*
