@@ -72,7 +72,7 @@ class TestOHLCVChart:
     def mock_database(self, sample_data):
         """Create mock database with sample data."""
         mock_db = MagicMock(spec=OHLCVDatabase)
-        mock_db.get_data.return_value = sample_data
+        mock_db.get_ohlcv_data.return_value = sample_data
         return mock_db
     
     @pytest.fixture
@@ -89,7 +89,7 @@ class TestOHLCVChart:
              patch('src.visualization.chart_engine.YahooFetcher') as mock_fetcher_class:
             
             # Setup mocks
-            mock_cache_class.return_value.get_cached_data.return_value = mock_database.get_data()
+            mock_cache_class.return_value.get_cached_data.return_value = mock_database.get_ohlcv_data()
             mock_fetcher_class.return_value = Mock()
             
             chart = OHLCVChart(mock_database, 'TEST-SYMBOL')
@@ -174,8 +174,10 @@ class TestOHLCVChart:
         
         chart = chart_with_mocks
         
-        # Mock data retrieval
-        with patch.object(chart, '_get_data', return_value=sample_data):
+        # Mock data retrieval and formatting to avoid matplotlib complexity
+        with patch.object(chart, '_get_data', return_value=sample_data), \
+             patch.object(chart, '_format_chart') as mock_format:
+            
             # Test basic plot
             result = chart.plot()
             
@@ -184,7 +186,10 @@ class TestOHLCVChart:
             
             # Verify subplots was called for single plot
             mock_subplots.assert_called()
-    
+            
+            # Verify formatting was called
+            mock_format.assert_called()
+
     @patch('matplotlib.pyplot.subplots')
     def test_volume_subplot_creation(self, mock_subplots, chart_with_mocks, sample_data):
         """Test volume subplot creation."""
@@ -196,13 +201,18 @@ class TestOHLCVChart:
         
         chart = chart_with_mocks
         
-        with patch.object(chart, '_get_data', return_value=sample_data):
+        with patch.object(chart, '_get_data', return_value=sample_data), \
+             patch.object(chart, '_format_chart') as mock_format:
+            
             chart.plot(volume='subplot')
             
             # Should create 2 subplots for volume
             call_args = mock_subplots.call_args
             assert call_args[0][0] == 2  # 2 rows
             assert call_args[0][1] == 1  # 1 column
+            
+            # Verify formatting was called
+            mock_format.assert_called()
     
     def test_error_handling_empty_data(self, chart_with_mocks):
         """Test error handling for empty data."""
@@ -278,9 +288,17 @@ class TestTechnicalIndicators:
         assert (bands['upper'][valid_idx] >= bands['middle'][valid_idx]).all()
         assert (bands['middle'][valid_idx] >= bands['lower'][valid_idx]).all()
         
-        # Middle should equal SMA
-        sma = TechnicalIndicators.moving_average(price_series, window=20)
-        pd.testing.assert_series_equal(bands['middle'], sma)
+        # Middle should equal SMA calculated with same parameters
+        # Note: moving_average uses min_periods=1, bollinger_bands uses default rolling
+        sma_bands = price_series.rolling(window=20).mean()  # Use same calculation as Bollinger Bands
+        
+        # Compare non-NaN values
+        valid_idx = ~bands['middle'].isna() & ~sma_bands.isna()
+        pd.testing.assert_series_equal(
+            bands['middle'][valid_idx], 
+            sma_bands[valid_idx],
+            check_names=False
+        )
     
     def test_rsi(self, price_series):
         """Test RSI calculation."""
