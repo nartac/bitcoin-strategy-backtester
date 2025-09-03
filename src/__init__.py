@@ -10,11 +10,13 @@ __description__ = "A comprehensive Python-based tool for backtesting Bitcoin tra
 # Import main components
 from .data import YahooFetcher, OHLCVDatabase, CacheManager
 from .utils.config import DATABASE_CONFIG, DEFAULT_SYMBOLS
+from .visualization import OHLCVChart
 
 __all__ = [
     'YahooFetcher',
     'OHLCVDatabase', 
     'CacheManager',
+    'OHLCVChart',
     'DATABASE_CONFIG',
     'DEFAULT_SYMBOLS'
 ]
