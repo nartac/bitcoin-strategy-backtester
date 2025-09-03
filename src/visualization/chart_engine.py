@@ -444,12 +444,20 @@ class OHLCVChart:
     
     def _format_chart(self, timeframe: str, title: Optional[str]) -> None:
         """Apply formatting to the chart."""
-        # Format main price axis
-        apply_chart_formatting(self.axes[0], self.symbol, self.data, timeframe, 'price')
-        
-        # Format volume axis if present
+        # Note: Skip date formatting for main axis since we use sequential positioning
+        # Format main price axis (without date formatting to preserve sequential positioning)
         if len(self.axes) > 1:
+            # For volume axis, apply full formatting
             apply_chart_formatting(self.axes[1], self.symbol, self.data, timeframe, 'volume')
+        
+        # Apply only price formatting to main axis (skip date formatting)
+        from .formatters import PriceAxisFormatter
+        PriceAxisFormatter.format_price_axis(self.axes[0], self.symbol, self.data['close'])
+        self.axes[0].set_ylabel('Price', fontsize=11)
+        
+        # Add grid to main axis
+        self.axes[0].grid(True, alpha=0.3)
+        self.axes[0].tick_params(axis='both', labelsize=10)
         
         # Add title
         if title:
