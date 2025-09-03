@@ -223,17 +223,23 @@ class ChartExplorer:
             )
             
             # Generate filename if not provided
-            if not params['output']:
+            if not params['output'] or not params['output'].strip():
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 filename = f"chart_{symbol}_{params['timeframe']}_{params['style']}_{timestamp}.png"
                 output_path = os.path.join('examples', 'charts', filename)
             else:
-                output_path = params['output']
+                output_path = params['output'].strip()
+                # If no directory specified, save to examples/charts
+                if not os.path.dirname(output_path):
+                    output_path = os.path.join('examples', 'charts', output_path)
+                # Ensure file has an extension
                 if not output_path.endswith(('.png', '.jpg', '.jpeg', '.pdf')):
                     output_path += '.png'
             
             # Ensure directory exists
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            output_dir = os.path.dirname(output_path)
+            if output_dir:  # Only create directory if there's a directory path
+                os.makedirs(output_dir, exist_ok=True)
             
             self.print_colored("💾 Saving chart...", Colors.BLUE)
             result.save(output_path)
@@ -253,14 +259,19 @@ class ChartExplorer:
             self._save_history(history_entry)
             
             # Ask if user wants to save as favorite
-            if input(f"\n{Colors.CYAN}Save this configuration as a favorite? (y/N): {Colors.END}").lower() == 'y':
-                name = input(f"{Colors.CYAN}Enter a name for this favorite: {Colors.END}").strip()
-                if name:
-                    favorite = params.copy()
-                    favorite['name'] = name
-                    self.favorites.append(favorite)
-                    self._save_favorites()
-                    self.print_colored(f"⭐ Saved as favorite: {name}", Colors.GREEN)
+            try:
+                save_fav = input(f"\n{Colors.CYAN}Save this configuration as a favorite? (y/N): {Colors.END}").lower()
+                if save_fav == 'y':
+                    name = input(f"{Colors.CYAN}Enter a name for this favorite: {Colors.END}").strip()
+                    if name:
+                        favorite = params.copy()
+                        favorite['name'] = name
+                        self.favorites.append(favorite)
+                        self._save_favorites()
+                        self.print_colored(f"⭐ Saved as favorite: {name}", Colors.GREEN)
+            except (EOFError, KeyboardInterrupt):
+                # Handle EOF or Ctrl+C gracefully
+                pass
             
             return True
             
