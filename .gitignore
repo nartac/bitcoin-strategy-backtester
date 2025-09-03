@@ -520,10 +520,58 @@ create_comparison.py
 verify_charts.py
 spacing_comparison.png
 
-# =============================================================================
-# End of .gitignore
-# =============================================================================
 # Temporary files and test outputs
 test_*.png
 *_temp.*
 temp_*
+
+# =============================================================================
+# Chart Explorer CLI Files
+# =============================================================================
+
+# Chart Explorer history and favorites
+.chart_history.json
+.chart_favorites.json
+
+# Auto-generated chart files (timestamped)
+examples/charts/chart_*_????????_??????.png
+
+# =============================================================================
+# Additional Project-Specific Ignores
+# =============================================================================
+
+# SQLite database files (symbol-named databases)
+BTC-USD
+ETH-USD
+AAPL
+TSLA
+GOOGL
+MSFT
+AMZN
+NVDA
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary cleanup and test files
+test_cleanup.py
+CLEANUP_SUMMARY.md
+analysis_*.py
+verify_*.py
+
+# Chart generation test outputs
+test_*.png
+*_test.png
+spacing_*.png
+
+# Data quality check outputs
+data_quality_*.json
+outlier_*.csv
+
+# Performance profiling outputs
+profile_*.prof
+*.lprof
+
+# =============================================================================
+# End of .gitignore
+# =============================================================================
