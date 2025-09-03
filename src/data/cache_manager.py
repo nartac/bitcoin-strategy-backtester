@@ -85,6 +85,17 @@ class CacheManager:
         needs_earlier_data = effective_start < cached_start
         needs_later_data = effective_end > cached_end or not is_cache_fresh
         
+        # Add tolerance for small gaps (e.g., weekends, holidays)
+        gap_tolerance_days = 7  # Allow up to 1 week gap without fetching
+        
+        if needs_earlier_data:
+            gap_days = (cached_start - effective_start).days
+            if gap_days <= gap_tolerance_days:
+                # Small gap - use available data instead of fetching
+                self.logger.debug(f"Small gap ({gap_days} days) for {symbol}, using available data from {cached_start}")
+                needs_earlier_data = False
+                effective_start = cached_start
+        
         if needs_earlier_data or needs_later_data:
             # Need to fetch additional data
             if needs_earlier_data and needs_later_data:

@@ -12,6 +12,9 @@ from datetime import datetime, date, timedelta
 from typing import Optional, Dict, Any, List, Union, Tuple
 import warnings
 
+# Suppress tight_layout warnings for better user experience
+warnings.filterwarnings('ignore', message='This figure includes Axes that are not compatible with tight_layout')
+
 # Import project modules
 from ..data.database import OHLCVDatabase
 from ..data.cache_manager import CacheManager
@@ -134,7 +137,15 @@ class OHLCVChart:
     def show(self) -> None:
         """Display the chart."""
         if self.figure:
-            plt.tight_layout()
+            try:
+                plt.tight_layout()
+            except:
+                # If tight_layout fails, use constrained layout
+                try:
+                    self.figure.set_layout_engine('constrained')
+                except:
+                    # If that fails too, just continue without layout adjustment
+                    pass
             plt.show()
             # Clean up after showing
             plt.close(self.figure)
@@ -163,8 +174,12 @@ class OHLCVChart:
             try:
                 plt.tight_layout()
             except:
-                # If tight_layout fails, use constrained layout
-                self.figure.set_layout_engine('constrained')
+                # If tight_layout fails, use constrained layout or bbox_inches
+                try:
+                    self.figure.set_layout_engine('constrained')
+                except:
+                    # If constrained layout also fails, continue without layout adjustment
+                    pass
             
             self.figure.savefig(filename, dpi=dpi, format=format, bbox_inches='tight')
             # Clean up memory
