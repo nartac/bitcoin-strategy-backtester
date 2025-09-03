@@ -98,6 +98,9 @@ class OHLCVChart:
         # Validate parameters
         self._validate_parameters(timeframe, scale, style, price_type, indicators, volume)
         
+        # Store timeframe for use in formatting methods
+        self.timeframe = timeframe
+        
         # Get data for the specified timeframe
         self.data = self._get_data(timeframe, price_type)
         
@@ -398,7 +401,24 @@ class OHLCVChart:
         if label_positions[-1] != len(self.data) - 1:
             label_positions.append(len(self.data) - 1)
         
-        label_dates = [self.data.index[i].strftime('%m/%d') for i in label_positions]
+        # Choose date format based on timeframe
+        timeframe = getattr(self, 'timeframe', '1Y')  # Default to 1Y if not set
+        
+        if timeframe in ['5Y', 'MAX']:
+            # For explicitly multi-year charts, prioritize year information
+            data_span_years = (self.data.index[-1] - self.data.index[0]).days / 365.25
+            
+            if data_span_years > 3:
+                # More than 3 years: Show year only
+                date_format = '%Y'
+            else:
+                # 2-3 years: Show month/year
+                date_format = '%m/%Y'
+        else:
+            # For 1Y and shorter timeframes, keep month/day format as requested
+            date_format = '%m/%d'
+        
+        label_dates = [self.data.index[i].strftime(date_format) for i in label_positions]
         
         # Set custom tick positions and labels
         ax.set_xticks(label_positions)
@@ -459,20 +479,22 @@ class OHLCVChart:
     
     def _format_chart(self, timeframe: str, title: Optional[str]) -> None:
         """Apply formatting to the chart."""
-        # Note: Skip date formatting for main axis since we use sequential positioning
-        # Format main price axis (without date formatting to preserve sequential positioning)
-        if len(self.axes) > 1:
-            # For volume axis, apply full formatting
-            apply_chart_formatting(self.axes[1], self.symbol, self.data, timeframe, 'volume')
-        
+        # Note: Skip date formatting for all axes since we use sequential positioning
         # Apply only price formatting to main axis (skip date formatting)
-        from .formatters import PriceAxisFormatter
+        from .formatters import PriceAxisFormatter, VolumeAxisFormatter
         PriceAxisFormatter.format_price_axis(self.axes[0], self.symbol, self.data['close'])
         self.axes[0].set_ylabel('Price', fontsize=11)
         
-        # Add grid to main axis
+        # Add grid and formatting to main axis
         self.axes[0].grid(True, alpha=0.3)
         self.axes[0].tick_params(axis='both', labelsize=10)
+        
+        # Format volume axis if present (without date formatting to preserve sequential positioning)
+        if len(self.axes) > 1:
+            VolumeAxisFormatter.format_volume_axis(self.axes[1], self.data['volume'])
+            self.axes[1].set_ylabel('Volume', fontsize=11)
+            self.axes[1].grid(True, alpha=0.3)
+            self.axes[1].tick_params(axis='both', labelsize=10)
         
         # Add title
         if title:
