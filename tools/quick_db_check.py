@@ -4,10 +4,16 @@ Quick Database Checker - Simple interface for common database queries
 """
 
 import sys
+import os
 from datetime import datetime, date, timedelta
 
-# Add project root to path
-sys.path.append('.')
+# Add project root to path (handle both direct execution and running from root)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if os.path.basename(current_dir) == 'tools':
+    sys.path.insert(0, parent_dir)
+else:
+    sys.path.insert(0, '.')
 
 from inspect_database import DatabaseInspector
 

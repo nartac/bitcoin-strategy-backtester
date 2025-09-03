@@ -5,7 +5,15 @@ Simple test for database caching functionality.
 
 import sys
 import time
-sys.path.append('.')
+import os
+
+# Add project root to path (handle both direct execution and running from root)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if os.path.basename(current_dir) == 'examples':
+    sys.path.insert(0, parent_dir)
+else:
+    sys.path.insert(0, '.')
 
 from src.data import YahooFetcher
 

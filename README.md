@@ -299,6 +299,39 @@ print(f"Profit Factor: {report.profit_factor:.2f}")
     └─────────────────┘ └─────────────────┘ └─────────────────┘
 ```
 
+### 📁 Project Structure
+
+```
+bitcoin-strategy-backtester/
+├── 📦 src/                      # Core application code
+│   ├── 🗄️ data/                # Data management & caching
+│   │   ├── cache_manager.py     # Intelligent caching system
+│   │   ├── database.py          # SQLite OHLCV storage
+│   │   ├── fetcher.py           # Yahoo Finance integration
+│   │   └── models.py            # Data validation models
+│   └── 🛠️ utils/               # Utility modules
+│       └── config.py            # Configuration management
+├── 🧪 tests/                    # Unit & integration tests
+│   ├── test_cache_manager.py    # Cache system tests
+│   └── test_database.py         # Database functionality tests
+├── 🔧 tools/                    # Database inspection tools
+│   ├── inspect_database.py      # Full database explorer
+│   ├── quick_db_check.py        # Quick CLI queries
+│   └── README.md                # Tools documentation
+├── 📚 examples/                 # Example scripts & demos
+│   ├── simple_cache_test.py     # Basic caching test
+│   ├── test_database_features.py # Database demo
+│   ├── test_fetcher.py          # Data fetching demo
+│   └── README.md                # Examples documentation
+├── 📖 docs/                     # Documentation
+│   ├── DATABASE_INSPECTION.md   # Database tools guide
+│   └── DEVELOPMENT.md           # Development guide
+├── 🗄️ data/                     # Database storage (created at runtime)
+├── ⚙️ pytest.ini               # Test configuration
+├── 📋 requirements.txt          # Python dependencies
+└── 📄 README.md                # This file
+```
+
 ### Core Components
 
 - **Data Pipeline**: Handles data ingestion, cleaning, and validation
