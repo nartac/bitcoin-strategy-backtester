@@ -10,7 +10,13 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*$py.class
+*$py.# Chart Explorer CLI history and favorites
+.chart_history.json
+.chart_favorites.json
+
+# Chart Explorer demo files
+test_cache_expiry.py
+cache_demo.pyss
 *.so
 
 # Distribution / packaging

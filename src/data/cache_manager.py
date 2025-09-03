@@ -293,3 +293,70 @@ class CacheManager:
             'cache_age_days': cache_age_days,
             'is_fresh': cache_age_days is not None and cache_age_days <= self.max_age_days
         }
+    
+    def check_cache_freshness(self, symbols: List[str] = None) -> Dict[str, Dict]:
+        """
+        Check cache freshness for multiple symbols.
+        
+        Args:
+            symbols: List of symbols to check (None for all symbols)
+            
+        Returns:
+            Dict: Cache freshness info for each symbol
+        """
+        if symbols is None:
+            # Get all symbols from database
+            try:
+                symbols_info = self.database.get_symbols_info()
+                symbols = [symbol_info.symbol for symbol_info in symbols_info]
+            except Exception as e:
+                self.logger.warning(f"Could not auto-detect symbols: {e}")
+                return {}
+        
+        freshness_info = {}
+        for symbol in symbols:
+            try:
+                freshness_info[symbol] = self.get_symbol_cache_info(symbol)
+            except Exception as e:
+                self.logger.error(f"Error checking freshness for {symbol}: {e}")
+                freshness_info[symbol] = {'error': str(e)}
+        
+        return freshness_info
+    
+    def refresh_stale_caches(self, symbols: List[str] = None, max_age_override: int = None) -> Dict[str, bool]:
+        """
+        Refresh stale caches for specified symbols.
+        
+        Args:
+            symbols: List of symbols to refresh (None for all stale symbols)
+            max_age_override: Override max age for this operation
+            
+        Returns:
+            Dict: Success status for each symbol refresh
+        """
+        max_age = max_age_override or self.max_age_days
+        
+        if symbols is None:
+            # Find all stale symbols
+            freshness_info = self.check_cache_freshness()
+            symbols = [symbol for symbol, info in freshness_info.items() 
+                      if 'cache_age_days' in info and info['cache_age_days'] is not None 
+                      and info['cache_age_days'] > max_age]
+            
+            if not symbols:
+                self.logger.info("No stale caches found")
+                return {}
+        
+        refresh_results = {}
+        for symbol in symbols:
+            try:
+                self.logger.info(f"Refreshing stale cache for {symbol}")
+                # Force fetch recent data by requesting data up to today
+                self.get_cached_data(symbol, end_date=date.today(), max_age_days=max_age)
+                refresh_results[symbol] = True
+                self.logger.info(f"Successfully refreshed cache for {symbol}")
+            except Exception as e:
+                self.logger.error(f"Failed to refresh cache for {symbol}: {e}")
+                refresh_results[symbol] = False
+        
+        return refresh_results

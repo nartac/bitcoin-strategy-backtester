@@ -22,6 +22,7 @@ sys.path.insert(0, current_dir)
 
 try:
     from src.visualization.chart_engine import OHLCVChart
+    from src.data.cache_manager import CacheManager
 except ImportError as e:
     print(f"❌ Error importing chart engine: {e}")
     print("Make sure you're running this from the project root directory.")
@@ -278,6 +279,129 @@ class ChartExplorer:
         except Exception as e:
             self.print_colored(f"❌ Error creating chart: {e}", Colors.RED)
             return False
+    
+    def show_cache_status(self) -> None:
+        """Show cache freshness status for all symbols."""
+        try:
+            self.print_header("📊 CACHE STATUS")
+            
+            cache_manager = CacheManager()
+            freshness_info = cache_manager.check_cache_freshness()
+            
+            if not freshness_info:
+                self.print_colored("ℹ️  No cached symbols found.", Colors.YELLOW)
+                return
+            
+            fresh_symbols = []
+            stale_symbols = []
+            
+            for symbol, info in freshness_info.items():
+                if 'error' in info:
+                    self.print_colored(f"❌ {symbol}: Error - {info['error']}", Colors.RED)
+                    continue
+                
+                if info['date_range']:
+                    start_date, end_date = info['date_range']
+                    age_days = info['cache_age_days']
+                    is_fresh = info['is_fresh']
+                    
+                    status_icon = "✅" if is_fresh else "❌"
+                    status_text = "Fresh" if is_fresh else "Stale"
+                    color = Colors.GREEN if is_fresh else Colors.RED
+                    
+                    print(f"{status_icon} {Colors.BOLD}{symbol}{Colors.END} - {color}{status_text}{Colors.END}")
+                    print(f"   📅 Data: {start_date} to {end_date} ({info['record_count']:,} records)")
+                    print(f"   ⏰ Age: {age_days} days (max: {cache_manager.max_age_days} days)")
+                    
+                    if is_fresh:
+                        fresh_symbols.append(symbol)
+                    else:
+                        stale_symbols.append(symbol)
+                else:
+                    print(f"📂 {Colors.BOLD}{symbol}{Colors.END} - No data cached")
+            
+            print(f"\n{Colors.BOLD}Summary:{Colors.END}")
+            print(f"✅ Fresh: {len(fresh_symbols)} symbols")
+            print(f"❌ Stale: {len(stale_symbols)} symbols")
+            
+            if stale_symbols:
+                print(f"\n{Colors.YELLOW}Stale symbols: {', '.join(stale_symbols)}{Colors.END}")
+                print(f"Use --cache-refresh to update stale caches")
+            
+        except Exception as e:
+            self.print_colored(f"❌ Error checking cache status: {e}", Colors.RED)
+    
+    def refresh_stale_caches(self) -> None:
+        """Refresh all stale caches."""
+        try:
+            self.print_header("🔄 REFRESHING STALE CACHES")
+            
+            cache_manager = CacheManager()
+            refresh_results = cache_manager.refresh_stale_caches()
+            
+            if not refresh_results:
+                self.print_colored("✅ No stale caches found to refresh!", Colors.GREEN)
+                return
+            
+            success_count = 0
+            for symbol, success in refresh_results.items():
+                if success:
+                    self.print_colored(f"✅ {symbol}: Successfully refreshed", Colors.GREEN)
+                    success_count += 1
+                else:
+                    self.print_colored(f"❌ {symbol}: Failed to refresh", Colors.RED)
+            
+            print(f"\n{Colors.BOLD}Summary:{Colors.END}")
+            print(f"✅ Refreshed: {success_count}/{len(refresh_results)} symbols")
+            
+            if success_count == len(refresh_results):
+                self.print_colored("🎉 All stale caches successfully refreshed!", Colors.GREEN)
+            
+        except Exception as e:
+            self.print_colored(f"❌ Error refreshing caches: {e}", Colors.RED)
+    
+    def show_cache_info(self, symbol: str) -> None:
+        """Show detailed cache information for a specific symbol."""
+        try:
+            self.print_header(f"📊 CACHE INFO: {symbol.upper()}")
+            
+            cache_manager = CacheManager()
+            info = cache_manager.get_symbol_cache_info(symbol.upper())
+            
+            if not info['date_range']:
+                self.print_colored(f"📂 No data cached for {symbol.upper()}", Colors.YELLOW)
+                return
+            
+            start_date, end_date = info['date_range']
+            age_days = info['cache_age_days']
+            is_fresh = info['is_fresh']
+            
+            status_icon = "✅" if is_fresh else "❌"
+            status_text = "Fresh" if is_fresh else "Stale"
+            status_color = Colors.GREEN if is_fresh else Colors.RED
+            
+            print(f"{status_icon} {Colors.BOLD}Status:{Colors.END} {status_color}{status_text}{Colors.END}")
+            print(f"📊 {Colors.BOLD}Records:{Colors.END} {info['record_count']:,}")
+            print(f"📅 {Colors.BOLD}Date Range:{Colors.END} {start_date} to {end_date}")
+            print(f"⏰ {Colors.BOLD}Cache Age:{Colors.END} {age_days} days")
+            print(f"🔧 {Colors.BOLD}Max Age Setting:{Colors.END} {cache_manager.max_age_days} days")
+            
+            if not is_fresh:
+                print(f"\n{Colors.YELLOW}💡 This cache is stale. Use --cache-refresh to update it.{Colors.END}")
+            
+            # Show cache statistics
+            stats = cache_manager.get_cache_stats()
+            print(f"\n{Colors.BOLD}Cache Performance:{Colors.END}")
+            print(f"🎯 Cache Hits: {stats['cache_hits']}")
+            print(f"❌ Cache Misses: {stats['cache_misses']}")
+            print(f"🔄 Fetch Count: {stats['fetch_count']}")
+            
+            if stats['cache_hits'] + stats['cache_misses'] > 0:
+                hit_rate = stats['cache_hits'] / (stats['cache_hits'] + stats['cache_misses']) * 100
+                print(f"📈 Hit Rate: {hit_rate:.1f}%")
+            
+        except Exception as e:
+            self.print_colored(f"❌ Error getting cache info for {symbol}: {e}", Colors.RED)
 
 def parse_arguments():
     """Parse command line arguments."""
@@ -314,6 +438,15 @@ Available Options:
     parser.add_argument('--help-detailed', action='store_true',
                        help='Show detailed help and exit')
     
+    # Cache management commands
+    cache_group = parser.add_mutually_exclusive_group()
+    cache_group.add_argument('--cache-status', action='store_true',
+                           help='Show cache freshness status for all symbols')
+    cache_group.add_argument('--cache-refresh', action='store_true',
+                           help='Refresh all stale caches')
+    cache_group.add_argument('--cache-info', metavar='SYMBOL',
+                           help='Show detailed cache info for specific symbol')
+    
     return parser.parse_args()
 
 def main():
@@ -324,6 +457,19 @@ def main():
     
     if args.help_detailed:
         explorer.print_help()
+        return
+    
+    # Handle cache management commands
+    if args.cache_status:
+        explorer.show_cache_status()
+        return
+    
+    if args.cache_refresh:
+        explorer.refresh_stale_caches()
+        return
+    
+    if args.cache_info:
+        explorer.show_cache_info(args.cache_info)
         return
     
     # Determine if we're in interactive mode
