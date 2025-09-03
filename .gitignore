@@ -1,0 +1,511 @@
+# =============================================================================
+# Bitcoin Strategy Backtester - .gitignore
+# Professional gitignore for Python-based cryptocurrency backtesting project
+# =============================================================================
+
+# =============================================================================
+# Python
+# =============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+cover/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff
+instance/
+.webassets-cache
+
+# Scrapy stuff
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# =============================================================================
+# Virtual Environments
+# =============================================================================
+
+# Python virtual environments
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+.env/
+pyvenv.cfg
+
+# Conda environments
+.conda/
+.condarc
+
+# =============================================================================
+# Environment Variables & Configuration
+# =============================================================================
+
+# Environment variables (API keys, secrets, configuration)
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Configuration files with sensitive data
+config.ini
+config.json
+secrets.yaml
+secrets.yml
+local_config.py
+private_config.py
+
+# API configuration files
+api_config.json
+api_keys.txt
+credentials.json
+tokens.json
+
+# =============================================================================
+# Financial & Trading Data
+# =============================================================================
+
+# Historical price data
+data/raw/
+data/processed/
+data/historical/
+data/market_data/
+*.csv
+*.json
+*.parquet
+*.h5
+*.hdf5
+*.feather
+
+# Keep sample/example data
+!data/sample/
+!data/examples/
+!**/sample_*.csv
+!**/example_*.json
+
+# Backtest results and reports
+results/
+reports/
+output/
+backtest_results/
+performance_reports/
+*.pkl
+*.pickle
+
+# Trading logs and execution data
+logs/
+trading_logs/
+execution_logs/
+*.log
+*.log.*
+
+# Portfolio and position data
+portfolios/
+positions/
+trades/
+portfolio_*.json
+positions_*.csv
+
+# Strategy configurations (if they contain sensitive parameters)
+strategies/private/
+strategies/production/
+*_private.yaml
+*_prod.yaml
+
+# Cache files for market data
+cache/
+.cache/
+data_cache/
+api_cache/
+market_cache/
+
+# =============================================================================
+# Database Files
+# =============================================================================
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Other database files
+*.mdb
+*.accdb
+
+# =============================================================================
+# IDE and Development Tools
+# =============================================================================
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# PyCharm
+.idea/
+*.swp
+*.swo
+
+# Vim
+*~
+*.swp
+*.swo
+.vimrc.local
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+
+# Code formatting and linting cache
+.black/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.isort.cfg
+.flake8
+
+# Pre-commit hooks
+.pre-commit-config.yaml.backup
+
+# =============================================================================
+# Streamlit
+# =============================================================================
+
+# Streamlit cache
+.streamlit/
+streamlit_cache/
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# =============================================================================
+# Jupyter & IPython
+# =============================================================================
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Jupyter cache
+.jupyter/
+jupyter_cache/
+
+# IPython history
+.ipython/profile_*/history.sqlite
+.ipython/profile_*/startup/
+
+# =============================================================================
+# System Files
+# =============================================================================
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# Temporary Files
+# =============================================================================
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+temp/
+tmp/
+
+# Lock files
+*.lock
+.lock
+
+# =============================================================================
+# Documentation & Build Artifacts
+# =============================================================================
+
+# Generated documentation
+docs/build/
+docs/dist/
+site/
+_site/
+
+# Sphinx
+_build/
+_static/
+_templates/
+
+# MkDocs
+site/
+
+# =============================================================================
+# Monitoring & Analytics
+# =============================================================================
+
+# Performance monitoring files
+profiling/
+*.prof
+*.profile
+
+# Memory dumps
+*.dmp
+core.*
+
+# =============================================================================
+# Cryptocurrency Trading Platform Specific
+# =============================================================================
+
+# Binance API cache
+binance_cache/
+.binance/
+
+# Coinbase API cache
+coinbase_cache/
+.coinbase/
+
+# Kraken API cache
+kraken_cache/
+.kraken/
+
+# Trading view exports
+tradingview_*.csv
+tv_export_*.json
+
+# MetaTrader files
+*.ex4
+*.ex5
+*.mq4
+*.mq5
+
+# =============================================================================
+# Machine Learning & Model Files
+# =============================================================================
+
+# Model files
+models/
+*.model
+*.joblib
+*.pkl
+*.pickle
+*.h5
+*.keras
+*.onnx
+*.pb
+
+# TensorFlow
+*.tfrecord
+*.tfevents.*
+
+# PyTorch
+*.pth
+*.pt
+
+# Scikit-learn
+sklearn_models/
+
+# =============================================================================
+# Package Management
+# =============================================================================
+
+# pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Keep requirements files but ignore lock files initially
+requirements-lock.txt
+constraints.txt
+
+# Conda
+.condarc
+
+# =============================================================================
+# Security & Compliance
+# =============================================================================
+
+# Security scan results
+security_scan_results/
+bandit_results.json
+safety_results.txt
+
+# Compliance reports
+compliance/
+audit_logs/
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+
+# =============================================================================
+# Custom Project Specific
+# =============================================================================
+
+# Add any project-specific patterns below
+# Example: ignore specific vendor data formats
+# vendor_data/*.proprietary
+
+# Ignore large datasets but keep small test files
+large_datasets/
+big_data/
+
+# Ignore production deployment files
+deployment/production/
+k8s/production/
+docker-compose.prod.yml
+
+# Ignore user-specific strategy files
+my_strategies/
+personal_strategies/
+
+# =============================================================================
+# End of .gitignore
+# =============================================================================

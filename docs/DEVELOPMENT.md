@@ -1,0 +1,1 @@
+Lock versions later: Once everything works, run pip freeze > requirements-lock.txt to lock exact versions.
