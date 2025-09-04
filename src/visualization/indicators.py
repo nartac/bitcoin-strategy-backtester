@@ -20,9 +20,11 @@ class TechnicalIndicators:
             window: Number of periods for the moving average
             
         Returns:
-            Moving average series
+            Moving average series (NaN for insufficient data periods)
         """
-        return data.rolling(window=window, min_periods=1).mean()
+        # Use min_periods=window to ensure proper MA calculation
+        # This will return NaN for the first (window-1) periods
+        return data.rolling(window=window, min_periods=window).mean()
     
     @staticmethod
     def exponential_moving_average(data: pd.Series, window: int) -> pd.Series:

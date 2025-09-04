@@ -76,6 +76,7 @@ class OHLCVChart:
         self.figure = None
         self.axes = None
         self.data = None
+        self.full_data = None  # For indicator calculations with lookback
         
     def plot(self, timeframe: str = '1Y', scale: str = 'linear', style: str = 'line',
              price_type: str = 'close', indicators: Optional[str] = None, 
@@ -100,9 +101,11 @@ class OHLCVChart:
         
         # Store timeframe for use in formatting methods
         self.timeframe = timeframe
+        # Store indicators for data fetching
+        self.indicators = indicators
         
         # Get data for the specified timeframe
-        self.data = self._get_data(timeframe, price_type)
+        self.data = self._get_data(timeframe, price_type, indicators)
         
         if self.data.empty:
             raise ValueError(f"No data available for symbol {self.symbol} and timeframe {timeframe}")
@@ -217,27 +220,45 @@ class OHLCVChart:
         if not self.symbol:
             raise ValueError("Symbol must be specified")
     
-    def _get_data(self, timeframe: str, price_type: str) -> pd.DataFrame:
-        """Get data for the specified timeframe."""
+    def _get_data(self, timeframe: str, price_type: str, indicators: Optional[str] = None) -> pd.DataFrame:
+        """Get data for the specified timeframe with proper lookback for indicators."""
         # Calculate date range based on timeframe
         end_date = date.today()
         
+        # Base timeframe calculations
         if timeframe == '5D':
-            start_date = end_date - timedelta(days=7)  # Extra days for weekends
+            base_days = 7  # Extra days for weekends
         elif timeframe == '1M':
-            start_date = end_date - timedelta(days=35)  # ~1 month with buffer
+            base_days = 35  # ~1 month with buffer
         elif timeframe == '3M':
-            start_date = end_date - timedelta(days=95)  # ~3 months with buffer
+            base_days = 95  # ~3 months with buffer
         elif timeframe == '6M':
-            start_date = end_date - timedelta(days=190)  # ~6 months with buffer
+            base_days = 190  # ~6 months with buffer
         elif timeframe == 'YTD':
-            start_date = date(end_date.year, 1, 1)
+            base_days = (end_date - date(end_date.year, 1, 1)).days + 10  # YTD with buffer
         elif timeframe == '1Y':
-            start_date = end_date - timedelta(days=370)  # ~1 year with buffer
+            base_days = 370  # ~1 year with buffer
         elif timeframe == '5Y':
-            start_date = end_date - timedelta(days=1830)  # ~5 years with buffer
+            base_days = 1830  # ~5 years with buffer
         else:  # MAX
-            start_date = None
+            base_days = None
+        
+        # Calculate additional lookback needed for indicators
+        lookback_days = 0
+        if indicators:
+            if indicators == 'MA50':
+                lookback_days = 50
+            elif indicators == 'MA200':
+                lookback_days = 200
+            elif indicators == 'BOTH':
+                lookback_days = 200  # Use the larger lookback period
+        
+        # Calculate start date with lookback
+        if base_days is not None:
+            total_days = base_days + lookback_days
+            start_date = end_date - timedelta(days=total_days)
+        else:
+            start_date = None  # For MAX timeframe
         
         # Get cached data with fallback to fetcher
         data = self.cache_manager.get_cached_data(
@@ -257,6 +278,17 @@ class OHLCVChart:
         # Handle adjusted vs regular close
         if price_type == 'adjusted' and 'adj_close' in data.columns:
             data['close'] = data['adj_close']
+        
+        # If we fetched extra data for indicators, we need to trim it back to the display period
+        if lookback_days > 0 and base_days is not None and len(data) > 0:
+            # Calculate the display start date (without lookback)
+            display_start = end_date - timedelta(days=base_days)
+            # Store the full data for indicator calculation
+            self.full_data = data.copy()
+            # Trim data to display period for the main chart
+            display_data = data[data.index.date >= display_start]
+            # But we'll use full_data for indicator calculations in _add_indicators
+            return display_data
         
         return data
     
@@ -429,17 +461,30 @@ class OHLCVChart:
     
     def _add_indicators(self, ax, indicators: str) -> None:
         """Add technical indicators to the chart."""
-        indicator_data = calculate_chart_indicators(self.data, indicators)
+        # Use full data for calculation if available, otherwise use display data
+        calc_data = getattr(self, 'full_data', self.data)
+        indicator_data = calculate_chart_indicators(calc_data, indicators)
+        
+        # If we have full data, we need to trim the indicators to match the display data
+        if hasattr(self, 'full_data') and len(calc_data) > len(self.data):
+            # Find the start index of display data in full data
+            display_start = self.data.index[0]
+            start_idx = calc_data.index.get_loc(display_start)
+            
+            # Trim indicators to match display period
+            for key in indicator_data:
+                if indicator_data[key] is not None:
+                    indicator_data[key] = indicator_data[key].iloc[start_idx:]
         
         ma_colors = self.styler.get_ma_colors()
         # Calculate indicators with sequential x positions
         x_positions = list(range(len(self.data)))
         
-        if 'MA50' in indicator_data:
+        if 'MA50' in indicator_data and indicator_data['MA50'] is not None:
             ax.plot(x_positions, indicator_data['MA50'], 
                    color=ma_colors['ma50'], linewidth=2, label='MA50', alpha=0.8)
         
-        if 'MA200' in indicator_data:
+        if 'MA200' in indicator_data and indicator_data['MA200'] is not None:
             ax.plot(x_positions, indicator_data['MA200'], 
                    color=ma_colors['ma200'], linewidth=2, label='MA200', alpha=0.8)
     
